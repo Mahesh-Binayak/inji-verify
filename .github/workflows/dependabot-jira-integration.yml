@@ -1,0 +1,37 @@
+name: Dependabot-Jira-Integration
+
+on:
+  pull_request:
+    types:
+      - opened
+    branches:
+      - develop
+
+permissions:
+  pull-requests: read
+  contents: read
+
+jobs:
+  create_jira:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+
+    steps:
+      - name: Login to Jira
+        uses: atlassian/gajira-login@v2.0.0
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
+      - name: Create Jira Issue
+        id: create
+        uses: atlassian/gajira-create@v2.0.1
+        with:
+          project: MOSIP
+          issuetype: Bug
+          summary: |
+            [${{ github.event.repository.name }}] ${{ github.event.pull_request.title }}
+          description: |
+            PR URL: ${{ github.event.pull_request.html_url }}
+            PR Branch: ${{ github.event.pull_request.head.ref }}
